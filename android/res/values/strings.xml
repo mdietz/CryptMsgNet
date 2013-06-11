@@ -14,5 +14,7 @@
     <string name="shareNFC">Share via NFC</string>
     <string name="shareQR">Share via QR</string>
     <string name="sendAnon">Post Anonymously</string>
+    <string name="threadedSend">Send</string>
+    <string name="messagesFrom">"Messages From: "</string>
 
 </resources>

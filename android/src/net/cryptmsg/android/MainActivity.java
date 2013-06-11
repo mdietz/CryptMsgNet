@@ -1,14 +1,10 @@
 package net.cryptmsg.android;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -20,17 +16,10 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-
 import org.sufficientlysecure.keychain.integration.KeychainContentProviderHelper;
 import org.sufficientlysecure.keychain.integration.KeychainData;
 import org.sufficientlysecure.keychain.integration.KeychainIntentHelper;
 
-import android.net.Uri;
-import android.nfc.NfcAdapter;
-import android.nfc.NfcManager;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.os.Environment;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Context;
@@ -38,6 +27,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
+import android.nfc.NfcAdapter;
+import android.nfc.NfcManager;
+import android.os.AsyncTask;
+import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
@@ -45,6 +38,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -130,20 +124,24 @@ class PostRequestTask extends AsyncTask<String, String, String>{
     }
 }
 
-public class MainActivity extends ListActivity implements OnClickListener, OnItemClickListener {
+public class MainActivity extends ListActivity implements OnClickListener, OnItemClickListener, OnItemLongClickListener {
 	
 	static KeychainIntentHelper pgpIntentHelper;
 	public static KeychainData keyData;
 	DecryptCursorAdapter decAdapter;
 	public static final String baseUrl = "http://cryptmsgnet.appspot.com/";
 	
-	static MessageStore msgStore;
+	MessageStore msgStore;
 	
 	public static final String EXTRA_MSG_TEXT = "net.cryptmsg.android.message_text_extra";
 	public static final String EXTRA_USER = "net.cryptmsg.android.user_extra";
 	public static final String PREFS_FILE = "net.cryptmsg.android.preferences";
 	public static final String KEY_IDENTITY = "net.cryptmsg.android.IDENTITY";
+	public static final String KEY_ID = "net.cryptmsg.android.ID";
+
 	public static final int COMPOSE_MSG_CODE = 52498;
+	public static final String EXTRA_KEYDATA = "net.cryptmsg.android.KEYDATA";
+	
 	
 	public static String LongToHex(Long in){
 		String out = Long.toHexString(in);
@@ -172,17 +170,18 @@ public class MainActivity extends ListActivity implements OnClickListener, OnIte
 		}
 		
 		String dbpath = getDatabasePath(MessageStore.DB_NAME).toString();
-		msgStore = new MessageStore(dbpath, this);
 		pgpIntentHelper = new KeychainIntentHelper(this);
 		keyData = new KeychainData();
 		loadUserFromPrefs();
 		
+		if(msgStore == null || msgStore.getHashMap().isEmpty())
+		{
+			msgStore = new MessageStore(dbpath, this);
+			loadFromDatabase();
+		}
 		decAdapter = new DecryptCursorAdapter(msgStore.getHashMap());
 		this.setListAdapter(decAdapter);
-		
-		if(msgStore.getHashMap().isEmpty())
-			loadFromDatabase();
-		
+				
 		Intent i = getIntent();
 		if(i.getData() != null && i.getData().getScheme().equals("http")){
 			Log.i("REQ", getIntent().getDataString());
@@ -190,6 +189,7 @@ public class MainActivity extends ListActivity implements OnClickListener, OnIte
 		}
 		
 		getListView().setOnItemClickListener(this);
+		getListView().setOnItemLongClickListener(this);
 	}
 	
 	
@@ -197,15 +197,18 @@ public class MainActivity extends ListActivity implements OnClickListener, OnIte
 	private void loadUserFromPrefs() {
 		SharedPreferences prefs = getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
 		String user = prefs.getString(KEY_IDENTITY, null);
-		setUser(user);
+		long userID = prefs.getLong(KEY_ID, 0);
+		setUser(user, userID);
 	}
 
 	private void loadFromDatabase() {
+		assert(keyData.hasSecretKey());
 		Cursor fingerCursor = msgStore.getFingerprintCursor();
 		fingerCursor.moveToFirst();
 		while(!fingerCursor.isAfterLast())
 		{
-			String finger = fingerCursor.getString(fingerCursor.getColumnIndex(msgStore.KEY_FINGERPRINT));
+			String finger = fingerCursor.getString(fingerCursor.getColumnIndex(MessageStore.KEY_FINGERPRINT));
+			Log.i("DB", "loading messages from "+finger);
 			if(finger == null)
 			{
 				fingerCursor.moveToNext();
@@ -213,7 +216,14 @@ public class MainActivity extends ListActivity implements OnClickListener, OnIte
 			}
 			Cursor msgCursor = msgStore.getMsgCursorByFingerprint(finger);
 			if(msgCursor.moveToFirst())
-				doDecrypt(msgCursor.getString(msgCursor.getColumnIndex(msgStore.KEY_MSG)));
+			{
+				String msg = msgCursor.getString(msgCursor.getColumnIndex(MessageStore.KEY_MSG));
+				doDecrypt(msg);
+			}
+			else
+			{
+				Log.w("DB", "Had a fingerprint but no messages: " + msgCursor.getCount());
+			}
 			fingerCursor.moveToNext();
 		}
 	}
@@ -247,10 +257,6 @@ public class MainActivity extends ListActivity implements OnClickListener, OnIte
 		case R.id.sendMsgButton:
 			pgpIntentHelper.selectPublicKeys(null, keyData);
 			break;
-		case R.id.sendAnonButton:
-			setUser(null);
-			pgpIntentHelper.selectPublicKeys(null, keyData);
-			break;
 		case R.id.shareNfcButton:
 			if(keyData.getSecretKeyUserId() != null)
 				pgpIntentHelper.shareWithNfc(keyData.getSecretKeyId());
@@ -270,20 +276,20 @@ public class MainActivity extends ListActivity implements OnClickListener, OnIte
 		pgpIntentHelper.decrypt(data, true);
 	}
 
-	private void setUser(String user) {
+	private void setUser(String user, long userID) {
 		keyData.setSecretKeyUserId(user);
+		keyData.setSecretKeyId(userID);
 		SharedPreferences prefs = getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
 		Editor prefsEdit = prefs.edit();
 		prefsEdit.putString(KEY_IDENTITY, user);
+		prefsEdit.putLong(KEY_ID, userID);
 		prefsEdit.commit();
 		if(user != null)
 		{
 			((Button)findViewById(R.id.selSecretButton)).setText(Html.fromHtml("<i>"+user+"</i>"));
-			
 		}
 		else
 		{
-			keyData.setSecretKeyId(0);
 			((Button)findViewById(R.id.selSecretButton)).setText(Html.fromHtml("<b><font color=\"#C00000\">"+getString(R.string.selSecret)+"</font></b>"));
 		}
 	}
@@ -292,7 +298,7 @@ public class MainActivity extends ListActivity implements OnClickListener, OnIte
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data){
-		boolean result = pgpIntentHelper.onActivityResult(requestCode, resultCode, data,
+		pgpIntentHelper.onActivityResult(requestCode, resultCode, data,
                 keyData);
 		switch(requestCode)
 		{
@@ -302,10 +308,12 @@ public class MainActivity extends ListActivity implements OnClickListener, OnIte
 			{
 				msgStore.insert(keyData.getSecretKeyUserId(), keyData.getEncryptedData(), keyData.getDecryptedData());
 				Cursor c = msgStore.getMsgCursor();
-				Log.i("Cursor", "has " + new Integer(c.getCount()).toString() + "entries");
+				Log.i("Cursor", "has " + Integer.valueOf(c.getCount()).toString() + " msgs");
+				c = msgStore.getFingerprintCursor();
+				Log.i("Cursor", "has " + Integer.valueOf(c.getCount()).toString() + " fingers");
 				decAdapter.notifyDataSetChanged();
 
-			  loadUserFromPrefs();
+				loadUserFromPrefs();
 			}
 			break;
 		case KeychainIntentHelper.ENCRYPT_MESSAGE:
@@ -350,7 +358,8 @@ public class MainActivity extends ListActivity implements OnClickListener, OnIte
 			break;
 		case KeychainIntentHelper.SELECT_SECRET_KEYRING:
 			String identity = keyData.getSecretKeyUserId();
-			setUser(identity);
+			long id = keyData.getSecretKeyId();
+			setUser(identity, id);
 			
 			// Do GCM Registration Dance
 			GCMRegistrar.checkDevice(this);
@@ -413,6 +422,29 @@ public class MainActivity extends ListActivity implements OnClickListener, OnIte
 
 		@Override
 		public void onItemClick(AdapterView<?> parent, View v, int pos, long id) {
+			String user =  (String)((TextView)v.findViewById(R.id.userText)).getText();
+			String email = user.replaceAll("(.*?<)(.+?)(>)", "$2");
+			KeychainData kd = new KeychainData();
+			kd.setSecretKeyId(keyData.getSecretKeyId());
+			kd.setSecretKeyUserId(keyData.getSecretKeyUserId());
+			if(email != null && email.length() > 0)
+			{
+				KeychainContentProviderHelper contentProvider = new KeychainContentProviderHelper(this);
+				kd.setPublicKeyIds(contentProvider.getPublicKeyringIdsByEmail(email));
+				launchThreaded(kd);
+			}
+		}
+		
+		private void launchThreaded(KeychainData kd) {
+			Intent i = new Intent(this, ThreadedActivity.class);
+			i.putExtra(EXTRA_KEYDATA, kd);
+			i.putExtra(EXTRA_USER, keyData.getSecretKeyUserId());
+			startActivity(i);
+		}
+
+		@Override
+		public boolean onItemLongClick(AdapterView<?> parent, View v, int pos, long id) {
+			Log.i("Event", "LongClick");
 			keyData.setPublicKeyIds(null);
 			String user =  (String)((TextView)v.findViewById(R.id.userText)).getText();
 			String email = user.replaceAll("(.*?<)(.+?)(>)", "$2");
@@ -423,6 +455,7 @@ public class MainActivity extends ListActivity implements OnClickListener, OnIte
 				keyData.setPublicKeyIds(contentProvider.getPublicKeyringIdsByEmail(email));
 				launchComposer();
 			}
+			return true;
 		}
 }
 

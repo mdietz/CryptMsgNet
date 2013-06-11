@@ -5,7 +5,7 @@
     android:orientation="vertical" >
 
     <TextView
-        android:id="@+id/composeTextView"
+        android:id="@+id/threadTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
@@ -13,21 +13,22 @@
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <EditText
-        android:id="@+id/msgText"
+        android:id="@+id/replyText"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:ems="10"
         android:gravity="top"
         android:imeActionLabel="Send"
-        android:imeOptions="actionGo|actionSend"
-        android:inputType="text" >
+        android:imeOptions="actionDone"
+        android:inputType="text"
+        android:singleLine="false" >
 
         <requestFocus />
     </EditText>
 
     <Button
-        android:id="@+id/doneButton"
+        android:id="@+id/replyButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"

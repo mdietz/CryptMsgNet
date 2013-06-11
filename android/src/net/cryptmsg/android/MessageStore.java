@@ -1,5 +1,6 @@
 package net.cryptmsg.android;
 
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -10,6 +11,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
+import android.util.Log;
 
 public class MessageStore {
 	
@@ -19,7 +21,6 @@ public class MessageStore {
 		public myOpenHelper(Context context, String name,
 				CursorFactory factory, int version) {
 			super(context, name, factory, version);
-			
 		}
 
 		@Override
@@ -30,8 +31,14 @@ public class MessageStore {
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			// Cannot upgrade, no new versions exist
-			assert(false);
+			switch(newVersion){
+			case 3:
+				db.execSQL(UPGRADE_MSG_TABLE_1_3);
+				Log.w("DB", "upgrading the database to v3");
+				break;
+			default:
+				assert(false);
+			}
 		}
 		
 	}
@@ -44,13 +51,19 @@ public class MessageStore {
 	public static final String MSG_TABLE = "Messages";
 	public static final String KEY_ROWID = "_id";
 	public static final String KEY_MSG = "msg";
+	public static final String KEY_STAMP = "timestamp";
 	
 	private static final String CREATE_MSG_TABLE =
 			  "CREATE TABLE if not exists " + MSG_TABLE + " (" +
 			  KEY_ROWID + " integer PRIMARY KEY autoincrement," +
-			  KEY_FINGERPRINT + " text, " +
-			  KEY_MSG + " text, " +
+			  KEY_STAMP + " integer NOT NULL," +
+			  KEY_FINGERPRINT + " text NOT NULL, " +
+			  KEY_MSG + " text NOT NULL, " +
 			  " FOREIGN KEY ("+KEY_FINGERPRINT+") REFERENCES userids("+KEY_FINGERPRINT+") )";
+	
+	private static final String UPGRADE_MSG_TABLE_1_3 =
+			  "ALTER TABLE " + MSG_TABLE + " ADD COLUMN " +
+			  KEY_STAMP + " integer NOT NULL DEFAULT 0";
 	
 	private static final String CREATE_USER_TABLE =
 			  "CREATE TABLE if not exists " + USER_TABLE + " (" +
@@ -67,7 +80,7 @@ public class MessageStore {
 	MessageStore(String fname, Context ctx)
 	{
 		assert(fname != null);
-		myOpenHelper openhelper = new myOpenHelper(ctx, DB_NAME, null, 1);
+		myOpenHelper openhelper = new myOpenHelper(ctx, DB_NAME, null, 3);
 		db = openhelper.getWritableDatabase();
 		assert(db != null);
 		
@@ -99,21 +112,24 @@ public class MessageStore {
 	}
 	
 	public Cursor getMsgCursorByFingerprint(String fingerprint) {
-		return db.query(false, MSG_TABLE, new String[]{KEY_ROWID, KEY_FINGERPRINT,KEY_MSG}, KEY_FINGERPRINT+"=?", new String[]{fingerprint}, KEY_FINGERPRINT, null, "_id", null);
+		Cursor c= db.query(false, MSG_TABLE, new String[]{KEY_ROWID, KEY_FINGERPRINT,KEY_MSG}, KEY_FINGERPRINT+"=\""+fingerprint+"\" AND "+KEY_MSG+" NOT NULL", null, null, null, KEY_STAMP+" DESC", "1");
+		Log.i("DB", "returning message resultset with " + c.getCount() + " entries");
+		return c;
 	}
 
 	public void insert(String secretKeyUserId, String encryptedData, String decryptedData) {
+		Log.i("DB", "beginning insert");
 		putDecrypted(secretKeyUserId, decryptedData);
 
-		
 		ContentValues cv = new ContentValues();
 		cv.put(KEY_FINGERPRINT, secretKeyUserId);
 		cv.put(KEY_METADATA, "");
-		db.insert(USER_TABLE, null, cv);
+		db.insertWithOnConflict(USER_TABLE, null, cv, SQLiteDatabase.CONFLICT_IGNORE);
 		
 		cv = new ContentValues();
 		cv.put(KEY_FINGERPRINT, secretKeyUserId);
 		cv.put(KEY_MSG, encryptedData);
+		cv.put(KEY_STAMP, Calendar.getInstance().getTimeInMillis());
 		db.insert(MSG_TABLE, null, cv);
 	}
 

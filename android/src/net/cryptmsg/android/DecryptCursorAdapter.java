@@ -25,6 +25,7 @@ public class DecryptCursorAdapter extends  BaseAdapter {
 		return hashmap.size();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Entry<String, Vector<String> > getItem(int position) {
 		return (Entry<String, Vector<String>>) hashmap.entrySet().toArray()[position];
@@ -50,7 +51,7 @@ public class DecryptCursorAdapter extends  BaseAdapter {
 			((TextView)v.findViewById(R.id.userText)).setText(user);
 		else
 			((TextView)v.findViewById(R.id.userText)).setText(ctx.getString(R.string.selSecret));
-		((TextView)v.findViewById(R.id.msgText)).setText(message);
+		((TextView)v.findViewById(R.id.replyText)).setText(message);
 		return v;
 	}
 
