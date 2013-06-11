@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">CryptMsg</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="selSecret">ANONYMOUS</string>
+    <string name="send">Send To</string>
+    <string name="recv">Recv</string>
+    <string name="blank"></string>
+    <string name="placeholder">Lorem Ipsum</string>
+    <string name="compose">Composing message as </string>
+    <string name="donecomposing">Done, send!</string>
+    <string name="shareNFC">Share via NFC</string>
+    <string name="shareQR">Share via QR</string>
+    <string name="sendAnon">Post Anonymously</string>
+
+</resources>

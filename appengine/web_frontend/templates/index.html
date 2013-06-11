@@ -1,0 +1,191 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+  <head>
+		<meta charset="utf-8"> 
+		<title>{{.Title}} - {{.Tagline2}}</title> 
+		<meta name="description" content="About the app">
+		<link rel="shortcut icon" href="static/images/favicon.ico">
+		<link href="static/bootstrap/docs/assets/css/bootstrap.css" rel="stylesheet"> 
+		<link href="static/bootstrap/docs/assets/css/bootstrap-cryptweb.css" rel="stylesheet">
+  </head>
+  <body>
+		<div class="navbar navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container">
+					<ul class="nav">
+						<li class="active">
+						<a class="brand" href="/">CryptWeb</a>
+						</li>
+						<li><a href="#Download">Get It</a></li>
+						<li><a href="#How1">How it works(ish)</a></li>
+						<li><a href="#How2">How it <i>really</i> works</a></li>
+						<li><a href="#Uses">Uses</a></li>
+						<li><a href="#Donate">Donate</a></li>
+						<li><a href="#Devs">Developers</a></li>
+						<li><a href="#Disc">Disclaimer</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+ <a name="Download"></a>
+		<div class="container">
+			<div class="well">
+      <!-- Main hero unit for a primary marketing message or call to action -->
+      <div class="leaderboard">
+        <a href="/"><img src="{{.LogoPath}}"></a>
+        <p><h5>{{.Tagline}}</h5></p>
+        <h4><a href="{{.AppStoreURL}}" id="example" class="btn btn-info" rel="popover" data-original-title="{{.BodyText}}">{{.GetButtonText}}</a></h4>
+      </div>
+      </div>
+		</div>
+ <a name="How1"></a>				
+		<div class="container">
+			<div class="well">
+					<h2>How it works (sort of...)</h2>
+					<p>&nbsp;</p>
+					<center>
+					<div id="myCarousel" class="carousel slide">
+						<!-- Carousel items -->
+						<div class="carousel-inner">
+						<div class="active item"><img src="static/images/cryptweb_over1.png"/></div>
+						<div class="item"><img src="static/images/cryptweb_over2.png"/></div>
+						<div class="item"><img src="static/images/cryptweb_over3.png"/></div>
+					</div>
+					<!-- Carousel nav -->
+					<a class="carousel-control left" href="#myCarousel" data-slide="prev">&lsaquo;</a>
+					<a class="carousel-control right" href="#myCarousel" data-slide="next">&rsaquo;</a>
+					</center>
+					</div>
+		</div>
+ <a name="How2"></a>
+		<div class="container">
+			<div class="well">
+					<h2>How it <i>really</i> works</h2>
+					<p>CryptWeb is a secure messaging application based on PGP that's designed to be as hassle free and secure as possible. Public keys are (and should) only be traded in person. To make this easy, CryptWeb facilitates this process through the use of NFC or QR codes between mobile devices. Communications are still passed through and mediated by a central server, but the server is never able to see the public or private keys of the communicators. This way, privacy can still be maintained if the server is compromised.</p>
+					</div>
+		</div>
+<a name="Uses"></a>
+		<div class="container">
+			<div class="well">
+			 <p>Like any technology, CryptWeb can be used for good or evil. Please use for good. Evil makes us sad.</p>
+				<div class="row">
+					<div class="span6">
+          <h2>Good Uses</h2>
+          <ul>
+          <li>Planning your granddaughter's birthday party</li>
+          <li>Working with Criminal Informants</li>
+          <li>Maintaining communications under an oppressive government regime</li>
+          <li>Whistleblowing</li>
+          <li>Sexting with your beau (if you must)</li>
+          <li>Developing secret food recipes</li>
+          <li>Writing down your horrible poetry that shouldn't be allowed to see the light of day. Ever.</li>
+          </ul> 
+        </div>
+        <div class="span5">
+          <h2>Nefarious Uses</h2>
+					<ul>
+					<li>Making plans to ruin your granddaughter's birthday party</li>
+					<li>Ill-conceived attempts at world domination</li>
+					<li>Well-conceived attempts at world domination</li>
+					<li>Sexting with your mistress</li>
+					<li>Industrial espionage</li>
+					<li>We've given you enough fodder</li>
+					</ul>
+       </div>
+				</div>
+			</div>
+		</div>
+<a name="Donate"></a>
+		<div class="container">
+			<div class="well">
+			<h2>Donate</h2>
+				<p>This service runs on the GoogleApps engine and costs us monies to maintain. If you dig the service, please consider donating!</p>
+				<p>We accept donations in bitcoins. Feel free to donate here: {{.BitcoinAddress}} </p>
+			</div>
+		</div>
+		
+<a name="Devs"></a>
+		<div class="container">
+			<div class="well">
+				<h2>Development Team</h2>
+				<p>The original CryptWeb implementation is a product of the 2013 Rice University Hackathon.</p>
+				<div class="span4">
+					<center>
+					<p>Mike Dietz</p>
+					<img src="static/images/mike_sq.jpg">
+					<p>[Server Back-End Dev]</p>
+					</center>
+				</div>
+				<div class="span4">
+				<center>
+					<p>Devin Grady</p>
+					<img src="static/images/devin_sq.jpg">
+					<p>[Android Dev]</p>
+					</center>					
+				</div>
+				<div class="span4">
+				<center>
+					<p>Scott Novich</p>
+					<img src="static/images/scott_sq.jpg">
+					<p>[Server Front-End Dev]</p>
+					</center>					
+				</div>
+				<div class="span4">
+				<center>
+					<p>River</p>
+					<img src="static/images/river_sq.jpg">
+					<p>[Moral Support / Living Vacuum]</p>
+					</center>					
+				</div>
+
+			  <p>&nbsp;</p>
+				<p>&nbsp;</p>
+				<p>&nbsp;</p>
+				<p>&nbsp;</p>
+				<p>&nbsp;</p>
+				<p>&nbsp;</p>
+				<p>&nbsp;</p>
+				<p>&nbsp;</p>
+			  <p>&nbsp;</p>
+				<p>&nbsp;</p>
+				<p>&nbsp;</p>
+				<p>&nbsp;</p>
+				<p>&nbsp;</p>
+				<p>&nbsp;</p>
+				<p>&nbsp;</p>
+				<p>&nbsp;</p>			
+				<p>&nbsp;</p>		
+				
+			</div>
+		</div>
+		
+<a name="Disc"></a>
+		<div class="container">
+			<div class="well">
+			<h2>Disclaimer</h2>
+				<p>This software is provided as is. We take zero responsibility for what it does to you or anything you own. Also, we're pretty sure it's illegal to export this software to places outside of the USA.</p>
+		  </div>
+		</div>
+		<center>{{.FootNote}}</center>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script src="static/bootstrap/js/bootstrap-tooltip.js"></script>
+		<script src="static/bootstrap/js/bootstrap-popover.js"></script>
+    <script src="static/bootstrap/docs/assets/js/jquery.js"></script>
+    <script src="static/bootstrap/js/bootstrap-transition.js"></script>
+    <script src="static/bootstrap/js/bootstrap-alert.js"></script>
+    <script src="static/bootstrap/js/bootstrap-modal.js"></script>
+    <script src="static/bootstrap/js/bootstrap-dropdown.js"></script>
+    <script src="static/bootstrap/js/bootstrap-scrollspy.js"></script>
+    <script src="static/bootstrap/js/bootstrap-tab.js"></script>
+    <script src="static/bootstrap/js/bootstrap-button.js"></script>
+    <script src="static/bootstrap/js/bootstrap-collapse.js"></script>
+    <script src="static/bootstrap/js/bootstrap-carousel.js"></script>
+    <script src="static/bootstrap/js/bootstrap-typeahead.js"></script>
+		
+		<script>
+		$(function ()
+		{ $("#example").popover();
+		});
+		</script>		
+  </body>
+</html>
