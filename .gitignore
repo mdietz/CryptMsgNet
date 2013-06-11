@@ -1,0 +1,4 @@
+.hgignore
+.hg
+android/gen
+android/bin
